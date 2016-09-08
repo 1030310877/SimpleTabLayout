@@ -33,13 +33,13 @@ public class TabLayout extends HorizontalScrollView {
     private ViewPager mViewPager;
     private PagerAdapter mPagerAdapter;
     private DataSetObserver mPagerAdapterObserver;
-    private int selected = 0;
+    private int selected = -1;
     private float tab_unselected_size;
     private float tab_selected_size;
     private int tab_unselected_color;
     private int tab_selected_color;
     private OnTabSelectedListener mOnTabSelectedListener;
-    private TabLayoutOnPageChangeListener mPageChangeListenernew;
+    private TabLayoutOnPageChangeListener mPageChangeListener;
 
     public TabLayout(Context context) {
         this(context, null);
@@ -84,6 +84,7 @@ public class TabLayout extends HorizontalScrollView {
             LinearLayout.LayoutParams params2 = (LinearLayout.LayoutParams) view2.getLayoutParams();
             params2.setMargins(20, 0, sizeWidth / 2 - view2.getWidth() / 2, 0);
         }
+        measureChildren(widthMeasureSpec, heightMeasureSpec);
     }
 
     public void setTabs(ArrayList<String> tabs) {
@@ -100,14 +101,14 @@ public class TabLayout extends HorizontalScrollView {
         }
         setPagerAdapter(viewPager.getAdapter(), true);
         setOnTabSelectedListener(new ViewPagerOnTabSelectedListener(mViewPager));
-        if (mPageChangeListenernew != null) {
-            mViewPager.removeOnPageChangeListener(mPageChangeListenernew);
+        if (mPageChangeListener != null) {
+            mViewPager.removeOnPageChangeListener(mPageChangeListener);
         }
-        if (mPageChangeListenernew == null) {
-            mPageChangeListenernew = new TabLayoutOnPageChangeListener(this);
+        if (mPageChangeListener == null) {
+            mPageChangeListener = new TabLayoutOnPageChangeListener(this);
         }
-        mPageChangeListenernew.reset();
-        mViewPager.addOnPageChangeListener(mPageChangeListenernew);
+        mPageChangeListener.reset();
+        mViewPager.addOnPageChangeListener(mPageChangeListener);
     }
 
     private void setPagerAdapter(@Nullable final PagerAdapter adapter, final boolean addObserver) {
@@ -176,9 +177,11 @@ public class TabLayout extends HorizontalScrollView {
         }
     }
 
-    private void selectTab(int curItem) {
-        TabView pre_view = (TabView) tabContainer.getChildAt(getSelected());
-        pre_view.setSelected(false);
+    public void selectTab(int curItem) {
+        if (getSelected() >= 0 && getSelected() < tabContainer.getChildCount()) {
+            TabView pre_view = (TabView) tabContainer.getChildAt(getSelected());
+            pre_view.setSelected(false);
+        }
         TabView now_view = (TabView) tabContainer.getChildAt(curItem);
         now_view.setSelected(true);
         int itemX = (int) (now_view.getX() + now_view.getWidth() / 2);
