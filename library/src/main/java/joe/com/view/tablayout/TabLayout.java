@@ -71,6 +71,21 @@ public class TabLayout extends HorizontalScrollView {
     }
 
     @Override
+    protected void onScrollChanged(int l, int t, int oldl, int oldt) {
+        super.onScrollChanged(l, t, oldl, oldt);
+        int count = tabContainer.getChildCount();
+        int sum = 0;
+        for (int i = 0; i < count; i++) {
+            View child = tabContainer.getChildAt(i);
+            sum += child.getWidth() + 20;
+            if (l < sum) {
+                selectTab(i, false);
+                break;
+            }
+        }
+    }
+
+    @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         int sizeWidth = MeasureSpec.getSize(widthMeasureSpec);
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
@@ -177,18 +192,19 @@ public class TabLayout extends HorizontalScrollView {
         }
     }
 
-    public void selectTab(int curItem) {
+    public void selectTab(int curItem, boolean needScrollTo) {
         if (getSelected() >= 0 && getSelected() < tabContainer.getChildCount()) {
             TabView pre_view = (TabView) tabContainer.getChildAt(getSelected());
             pre_view.setSelected(false);
         }
         TabView now_view = (TabView) tabContainer.getChildAt(curItem);
         now_view.setSelected(true);
-        int itemX = (int) (now_view.getX() + now_view.getWidth() / 2);
-        int centerX = getWidth() / 2;
-        int nowScroll = getScrollX();
-        smoothScrollBy((itemX - centerX) - nowScroll, 0);
-
+        if (needScrollTo) {
+            int itemX = (int) (now_view.getX() + now_view.getWidth() / 2);
+            int centerX = getMeasuredWidth() / 2;
+            int nowScroll = getScrollX();
+            smoothScrollBy((itemX - centerX) - nowScroll, 0);
+        }
         if (mOnTabSelectedListener != null) {
             if (selected == curItem) {
                 mOnTabSelectedListener.onTabReselected(selected);
@@ -197,6 +213,10 @@ public class TabLayout extends HorizontalScrollView {
             }
         }
         selected = curItem;
+    }
+
+    public void selectTab(int curItem) {
+        selectTab(curItem, true);
     }
 
     private void removeAllTabs() {
