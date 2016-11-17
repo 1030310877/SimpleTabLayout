@@ -40,6 +40,7 @@ public class TabLayout extends HorizontalScrollView {
     private int tab_selected_color;
     private OnTabSelectedListener mOnTabSelectedListener;
     private TabLayoutOnPageChangeListener mPageChangeListener;
+    private boolean autoScroll = false;
 
     public TabLayout(Context context) {
         this(context, null);
@@ -73,16 +74,19 @@ public class TabLayout extends HorizontalScrollView {
     @Override
     protected void onScrollChanged(int l, int t, int oldl, int oldt) {
         super.onScrollChanged(l, t, oldl, oldt);
-        int count = tabContainer.getChildCount();
-        int sum = 0;
-        for (int i = 0; i < count; i++) {
-            View child = tabContainer.getChildAt(i);
-            sum += child.getWidth() + 20;
-            if (l < sum) {
-                selectTab(i, false);
-                break;
+        if (!autoScroll) {
+            int count = tabContainer.getChildCount();
+            int sum = 0;
+            for (int i = 0; i < count; i++) {
+                View child = tabContainer.getChildAt(i);
+                sum += child.getWidth() + 20;
+                if (l < sum) {
+                    selectTab(i, false);
+                    break;
+                }
             }
         }
+        autoScroll = false;
     }
 
     @Override
@@ -203,7 +207,7 @@ public class TabLayout extends HorizontalScrollView {
             int itemX = (int) (now_view.getX() + now_view.getWidth() / 2);
             int centerX = getMeasuredWidth() / 2;
             int nowScroll = getScrollX();
-            smoothScrollBy((itemX - centerX) - nowScroll, 0);
+            scrollBy((itemX - centerX) - nowScroll, 0);
         }
         if (mOnTabSelectedListener != null) {
             if (selected == curItem) {
@@ -370,8 +374,9 @@ public class TabLayout extends HorizontalScrollView {
 
         @Override
         public void onPageSelected(int position) {
-            final TabLayout tabLayout = mTabLayoutRef.get();
+            TabLayout tabLayout = mTabLayoutRef.get();
             if (tabLayout != null && tabLayout.getSelected() != position) {
+                tabLayout.autoScroll = true;
                 tabLayout.selectTab(position);
             }
         }
